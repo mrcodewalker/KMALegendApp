@@ -1,6 +1,8 @@
 package com.example.kmalegend.ui.scholarship
 
 import android.app.Application
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -77,6 +79,15 @@ fun ScholarshipScreen(navController: NavController, vm: ScholarshipViewModel = v
     val cohorts = listOf("CT05","CT06","CT07","CT08","CT09","AT17","AT18","AT19","AT20","AT21","DT04","DT05","DT06","DT07","DT08")
     val sheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
     val scope = rememberCoroutineScope()
+
+    var rowsVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(uiState.students) {
+        rowsVisible = false
+        if (uiState.students.isNotEmpty()) {
+            kotlinx.coroutines.delay(80)
+            rowsVisible = true
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         ModalBottomSheetLayout(
@@ -188,6 +199,12 @@ fun ScholarshipScreen(navController: NavController, vm: ScholarshipViewModel = v
                                     index < 10 -> KmaBlue
                                     else -> OnSurfaceMedium
                                 }
+                                AnimatedVisibility(
+                                    visible = rowsVisible,
+                                    enter = slideInVertically(
+                                        tween(350, (index * 30).coerceAtMost(400), FastOutSlowInEasing)
+                                    ) { it / 3 } + fadeIn(tween(300, (index * 30).coerceAtMost(400)))
+                                ) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
                                         .background(color = bg, shape = androidx.compose.ui.graphics.RectangleShape)
@@ -210,6 +227,7 @@ fun ScholarshipScreen(navController: NavController, vm: ScholarshipViewModel = v
                                     Text(student.studentClass, modifier = Modifier.weight(1f), fontSize = 11.sp, color = OnSurfaceMedium)
                                     Text("%.2f".format(student.gpa), modifier = Modifier.weight(0.8f), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = rankColor)
                                     Text("%.1f".format(student.asiaGpa), modifier = Modifier.weight(0.8f), fontSize = 11.sp, color = OnSurfaceMedium)
+                                }
                                 }
                                 Divider(color = Outline.copy(alpha = 0.4f), modifier = Modifier.padding(horizontal = 16.dp))
                             }

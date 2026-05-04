@@ -91,9 +91,10 @@ dependencies {
     // WorkManager (for scheduled notifications)
     implementation 'androidx.work:work-runtime-ktx:2.8.1'
 
-    // Accompanist (pager for carousel)
+    // Accompanist (pager for carousel + animated navigation)
     implementation 'com.google.accompanist:accompanist-pager:0.30.1'
     implementation 'com.google.accompanist:accompanist-pager-indicators:0.30.1'
+    implementation 'com.google.accompanist:accompanist-navigation-animation:0.30.1'
 
     // Test
     testImplementation 'junit:junit:4.13.2'

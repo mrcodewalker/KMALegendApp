@@ -14,12 +14,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
-import androidx.navigation.compose.rememberNavController
+import androidx.compose.animation.ExperimentalAnimationApi
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.example.kmalegend.notification.NotificationScheduler
 import com.example.kmalegend.ui.navigation.NavGraph
 import com.example.kmalegend.ui.theme.KMALegendTheme
 import com.example.kmalegend.ui.theme.KmaRedDark
 
+@OptIn(ExperimentalAnimationApi::class)
 class MainActivity : ComponentActivity() {
 
     private val notifPermLauncher = registerForActivityResult(
@@ -44,7 +46,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    val navController = rememberNavController()
+                    val navController = rememberAnimatedNavController()
                     NavGraph(navController = navController)
                 }
             }

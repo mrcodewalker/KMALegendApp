@@ -4,12 +4,14 @@ import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -18,6 +20,8 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -31,6 +35,7 @@ import com.example.kmalegend.notification.ScheduleNotificationWorker
 import com.example.kmalegend.ui.common.*
 import com.example.kmalegend.ui.navigation.Routes
 import com.example.kmalegend.ui.theme.*
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -47,6 +52,10 @@ fun ScheduleScreen(navController: NavController) {
     var selectedEvent by remember { mutableStateOf<CourseSchedule?>(null) }
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showNotifDialog by remember { mutableStateOf(false) }
+
+    // ── Entrance animation ────────────────────────────────────────────────
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { delay(60); visible = true }
 
     // Notification permission state
     var notifEnabled by remember {
@@ -108,11 +117,22 @@ fun ScheduleScreen(navController: NavController) {
         }
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            // Student info banner
+        // Student info banner with slide-down animation
             studentInfo?.let { info ->
-                Box(modifier = Modifier.fillMaxWidth().background(KmaRed).padding(horizontal = 16.dp, vertical = 12.dp)) {
+                AnimatedVisibility(
+                    visible = visible,
+                    enter = slideInVertically(tween(450, easing = FastOutSlowInEasing)) { -it } + fadeIn(tween(400))
+                ) {
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                        .background(Brush.linearGradient(listOf(KmaRed, KmaRedDark)))
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(modifier = Modifier.size(40.dp).background(White.copy(alpha = 0.2f), CircleShape), contentAlignment = Alignment.Center) {
+                        Box(
+                            modifier = Modifier.size(40.dp).background(White.copy(alpha = 0.2f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Icon(Icons.Default.Person, contentDescription = null, tint = White, modifier = Modifier.size(22.dp))
                         }
                         Spacer(Modifier.width(12.dp))
@@ -122,9 +142,11 @@ fun ScheduleScreen(navController: NavController) {
                         }
                         Spacer(Modifier.weight(1f))
                         Card(shape = RoundedCornerShape(8.dp), backgroundColor = White.copy(alpha = 0.2f), elevation = 0.dp) {
-                            Text("${schedule.size} môn", color = White, fontSize = 12.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
+                            Text("${schedule.size} môn", color = White, fontSize = 12.sp, fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
                         }
                     }
+                }
                 }
             }
 
@@ -231,7 +253,12 @@ fun ScheduleScreen(navController: NavController) {
                 }
             }
 
+            // Events list with animated items
             if (eventsForDate.isEmpty()) {
+                AnimatedVisibility(
+                    visible = visible,
+                    enter = fadeIn(tween(400, 300))
+                ) {
                 Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(Icons.Default.EventBusy, contentDescription = null, tint = Outline, modifier = Modifier.size(40.dp))
@@ -239,10 +266,16 @@ fun ScheduleScreen(navController: NavController) {
                         Text("Không có lịch học", color = OnSurfaceMedium, style = MaterialTheme.typography.body2)
                     }
                 }
+                }
             } else {
                 LazyColumn(modifier = Modifier.weight(1f).padding(horizontal = 16.dp)) {
-                    items(eventsForDate) { course ->
-                        EventCard(course = course, onClick = { selectedEvent = course })
+                    itemsIndexed(eventsForDate) { index, course ->
+                        AnimatedVisibility(
+                            visible = visible,
+                            enter = slideInVertically(tween(380, index * 70)) { it / 2 } + fadeIn(tween(380, index * 70))
+                        ) {
+                            EventCard(course = course, onClick = { selectedEvent = course })
+                        }
                         Spacer(Modifier.height(8.dp))
                     }
                 }
@@ -287,8 +320,17 @@ private fun EventCard(course: CourseSchedule, onClick: () -> Unit) {
     val lessonGroup = course.lessons.split(" ").getOrNull(dayIndex) ?: course.lessons.split(" ").firstOrNull() ?: ""
     val time = getLessonTime(lessonGroup)
 
+    var pressed by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) 0.97f else 1f,
+        animationSpec = spring(Spring.DampingRatioMediumBouncy)
+    )
+
     Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        modifier = Modifier.fillMaxWidth().scale(scale)
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
+                pressed = true; onClick()
+            },
         shape = RoundedCornerShape(14.dp),
         elevation = 0.dp,
         backgroundColor = White

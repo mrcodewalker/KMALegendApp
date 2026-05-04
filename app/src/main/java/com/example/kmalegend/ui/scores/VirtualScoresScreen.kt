@@ -1,5 +1,7 @@
 package com.example.kmalegend.ui.scores
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -46,6 +48,9 @@ fun VirtualScoresScreen(navController: NavController, vm: VirtualScoresViewModel
     val uiState by vm.uiState.collectAsState()
     LaunchedEffect(Unit) { vm.init() }
 
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { kotlinx.coroutines.delay(80); visible = true }
+
     val virtualCPA     = vm.getVirtualCPA()
     val selectedTC     = uiState.virtualScores.filter { it.isSelected }.sumOf { it.subjectCredit }
     val allSelected    = uiState.virtualScores.isNotEmpty() && uiState.virtualScores.all { it.isSelected }
@@ -80,7 +85,11 @@ fun VirtualScoresScreen(navController: NavController, vm: VirtualScoresViewModel
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             Column(modifier = Modifier.fillMaxSize()) {
-                // ── Action bar ──────────────────────────────────────────────
+                // ── Action bar with slide-down animation ─────────────────────
+                AnimatedVisibility(
+                    visible = visible,
+                    enter = slideInVertically(tween(400, easing = FastOutSlowInEasing)) { -it } + fadeIn(tween(350))
+                ) {
                 ActionButtonsBar(
                     allSelected    = allSelected,
                     onSelectAll    = { vm.toggleSelectAll() },
@@ -90,6 +99,7 @@ fun VirtualScoresScreen(navController: NavController, vm: VirtualScoresViewModel
                     onCpaTarget    = { showCpaDialog = true },
                     onSave         = { showSaveConfirm = true }
                 )
+                }
 
                 // ── Table ───────────────────────────────────────────────────
                 val hScroll = rememberScrollState()
@@ -123,6 +133,11 @@ fun VirtualScoresScreen(navController: NavController, vm: VirtualScoresViewModel
 
                 LazyColumn(modifier = Modifier.weight(1f)) {
                     itemsIndexed(uiState.virtualScores) { index, score ->
+                        AnimatedVisibility(
+                            visible = visible,
+                            enter = slideInHorizontally(tween(350, index * 40, FastOutSlowInEasing)) { -it / 4 } +
+                                    fadeIn(tween(350, index * 40))
+                        ) {
                         VirtualScoreRow(
                             score       = score,
                             hScroll     = hScroll,
@@ -130,6 +145,7 @@ fun VirtualScoresScreen(navController: NavController, vm: VirtualScoresViewModel
                             onDelete    = { vm.removeScore(index) },
                             onSave      = { updated -> vm.updateScore(index, updated) }
                         )
+                        }
                     }
                     if (uiState.virtualScores.isEmpty() && !uiState.isLoading) {
                         item {

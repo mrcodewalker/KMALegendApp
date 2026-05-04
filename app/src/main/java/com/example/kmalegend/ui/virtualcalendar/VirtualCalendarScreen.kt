@@ -1,5 +1,7 @@
 package com.example.kmalegend.ui.virtualcalendar
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -122,6 +124,13 @@ fun VirtualCalendarScreen(navController: NavController) {
             )
         }
     ) { padding ->
+        // ── Animated entrance wrap ─────────────────────────────────
+        var contentVisible by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) { kotlinx.coroutines.delay(100); contentVisible = true }
+        AnimatedVisibility(
+            visible = contentVisible,
+            enter = fadeIn(tween(400)) + slideInVertically(tween(450, easing = FastOutSlowInEasing)) { it / 6 }
+        ) {
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             Column(modifier = Modifier.fillMaxSize()) {
                 TabRow(selectedTabIndex = selectedTab, backgroundColor = MaterialTheme.colors.primary, contentColor = White) {
@@ -141,6 +150,7 @@ fun VirtualCalendarScreen(navController: NavController) {
                 }
             }
         }
+        } // end AnimatedVisibility
     }
     if (showClearDialog) ConfirmDialog(
         title = "Xóa tất cả", message = "Xóa toàn bộ lớp đã chọn?", confirmText = "Xóa",
