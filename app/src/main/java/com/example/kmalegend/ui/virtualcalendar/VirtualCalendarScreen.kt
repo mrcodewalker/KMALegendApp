@@ -305,9 +305,9 @@ private fun PickerTab(
                                 val isSelected = classKey(item) == selectedClassKey
                                 val noRipple = remember { MutableInteractionSource() }
                                 Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                                    .background(if (isSelected) KmaRed.copy(alpha = 0.08f) else SurfaceVariant, RoundedCornerShape(12.dp))
+                                    .background(if (isSelected) KmaRed.copy(alpha = 0.08f) else SurfaceVariant, CircleShape)
                                     .border(width = if (isSelected) 1.5.dp else 1.dp,
-                                        color = if (isSelected) KmaRed else Outline, shape = RoundedCornerShape(12.dp))
+                                        color = if (isSelected) KmaRed else Outline, shape = CircleShape)
                                     .clickable(interactionSource = noRipple, indication = null) {
                                         if (isSelected) {
                                             onSavedChange(savedClasses.filter { classKey(it) != classKey(item) })
@@ -412,7 +412,8 @@ private fun PickerButton(label: String, value: String?, placeholder: String, has
         }
         OutlinedButton(onClick = onClick, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = if (hasSelection) KmaRed else if (value != null) OnSurfaceHigh else OnSurfaceMedium),
-            border = androidx.compose.foundation.BorderStroke(width = if (hasSelection) 1.5.dp else 1.dp, color = if (hasSelection) KmaRed else Outline)
+            border = androidx.compose.foundation.BorderStroke(width = if (hasSelection) 1.5.dp else 1.dp, color = if (hasSelection) KmaRed else Outline),
+            interactionSource = remember { MutableInteractionSource() }
         ) {
             Text(value ?: placeholder, modifier = Modifier.weight(1f),
                 fontWeight = if (value != null) FontWeight.Medium else FontWeight.Normal, fontSize = 14.sp, maxLines = 1,
@@ -488,7 +489,7 @@ private fun ScheduleTab(savedClasses: List<VirtualCalendarItem>) {
                             val isToday = dateStr == sdf.format(Calendar.getInstance().time)
                             Box(modifier = Modifier.weight(1f).aspectRatio(1f).padding(2.dp)
                                 .background(when { isSelected -> KmaRed; isToday -> KmaRedSurface; else -> Color.Transparent }, CircleShape)
-                                .clickable { selectedDate = dayCal },
+                                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { selectedDate = dayCal },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -533,14 +534,21 @@ private fun ScheduleTab(savedClasses: List<VirtualCalendarItem>) {
                 }
                 items(eventsForSelected) { event ->
                     val color = getColorFromSeed(event.details.course_name)
+                    val lessonGroup = event.details.lessons.split(" ").firstOrNull() ?: ""
+                    val time = getLessonTime(lessonGroup)
                     Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable { selectedEvent = event },
                         elevation = 0.dp, shape = RoundedCornerShape(12.dp), backgroundColor = White) {
                         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Box(modifier = Modifier.width(4.dp).height(50.dp).background(color, RoundedCornerShape(2.dp)))
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(44.dp)) {
+                                Text(time.start, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = KmaRed)
+                                Box(modifier = Modifier.width(1.dp).height(16.dp).background(Outline))
+                                Text(time.end, fontSize = 11.sp, color = OnSurfaceMedium)
+                            }
+                            Spacer(Modifier.width(12.dp))
+                            Box(modifier = Modifier.width(3.dp).height(52.dp).background(color, RoundedCornerShape(2.dp)))
                             Spacer(Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(event.details.course_name, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
-                                Text("Tiết: ${event.details.lessons}", fontSize = 11.sp, color = OnSurfaceMedium)
                                 Text("GV: ${event.details.teacher}", fontSize = 11.sp, color = OnSurfaceMedium)
                                 Text("Phòng: ${event.details.study_location}", fontSize = 11.sp, color = OnSurfaceMedium)
                             }
