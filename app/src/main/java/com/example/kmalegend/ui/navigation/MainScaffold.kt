@@ -67,25 +67,32 @@ fun KmaBottomNav(navController: NavController) {
                     // Center FAB button
                     Box(
                         modifier = Modifier
-                            .size(56.dp)
-                            .shadow(8.dp, CircleShape)
-                            .background(
-                                if (selected) KmaRedDark else KmaRed,
-                                CircleShape
-                            )
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) {
-                                navController.navigate(item.route) {
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
+                            .weight(1f)
+                            .fillMaxHeight(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(item.icon, contentDescription = item.label,
-                            tint = White, modifier = Modifier.size(26.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(52.dp)
+                                .shadow(8.dp, CircleShape)
+                                .background(if (selected) KmaRedDark else KmaRed, CircleShape)
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ) {
+                                    navController.navigate(item.route) {
+                                        popUpTo(Routes.HOME) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(item.icon, contentDescription = item.label,
+                                tint = White, modifier = Modifier.size(26.dp))
+                        }
                     }
                 } else {
                     // Regular tab
@@ -99,7 +106,7 @@ fun KmaBottomNav(navController: NavController) {
                             ) {
                                 if (currentRoute != item.route) {
                                     navController.navigate(item.route) {
-                                        popUpTo(navController.graph.startDestinationId) {
+                                        popUpTo(Routes.HOME) {
                                             saveState = true
                                         }
                                         launchSingleTop = true

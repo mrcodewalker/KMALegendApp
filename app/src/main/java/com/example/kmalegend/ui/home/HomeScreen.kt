@@ -22,26 +22,28 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.google.accompanist.pager.*import com.example.kmalegend.data.PrefsManager
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import com.example.kmalegend.data.PrefsManager
 import com.example.kmalegend.ui.common.KmaTopBar
 import com.example.kmalegend.ui.common.KmaDrawerScaffold
 import com.example.kmalegend.ui.navigation.Routes
 import com.example.kmalegend.ui.theme.*
 import kotlinx.coroutines.delay
 
-@OptIn(ExperimentalPagerApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(navController: NavController) {
     val context = LocalContext.current
     val prefs = remember { PrefsManager(context) }
     val studentInfo = remember { prefs.getScheduleSecret()?.data?.student_info }
-    val pagerState = rememberPagerState()
-
     val slides = listOf(
         Triple("Môi trường học tập hiện đại", "Cơ sở vật chất tiên tiến, phòng lab đầy đủ thiết bị", Icons.Default.School),
         Triple("Đội ngũ giảng viên chất lượng", "200+ giảng viên trình độ cao, nhiều kinh nghiệm thực tiễn", Icons.Default.People),
         Triple("Cơ hội nghề nghiệp rộng mở", "95% sinh viên có việc làm ngay sau tốt nghiệp", Icons.Default.Work)
     )
+    val pagerState = rememberPagerState(initialPage = 0)
 
                     LaunchedEffect(Unit) {
                         while (true) { delay(5000); pagerState.animateScrollToPage((pagerState.currentPage + 1) % slides.size) }
@@ -121,11 +123,11 @@ fun HomeScreen(navController: NavController) {
                     Spacer(Modifier.height(12.dp))
                     val features = listOf(
                         QuickFeature(Icons.Default.CalendarToday, "Lịch học", KmaRed, Routes.SCHEDULE),
-                        QuickFeature(Icons.Default.Grade, "Tra cứu điểm", Color(0xFF1565C0), Routes.SCORES),
-                        QuickFeature(Icons.Default.EditNote, "Điểm ảo", Color(0xFF6200EE), Routes.VIRTUAL_SCORES),
-                        QuickFeature(Icons.Default.EmojiEvents, "Học bổng", Color(0xFFF57F17), Routes.SCHOLARSHIP),
-                        QuickFeature(Icons.Default.EventNote, "Lịch ảo", Color(0xFF00695C), Routes.VIRTUAL_CALENDAR),
-                        QuickFeature(Icons.Default.School, "Chương trình", Color(0xFF37474F), Routes.ABOUT)
+                        QuickFeature(Icons.Default.Grade, "Tra cứu điểm", KmaRed, Routes.SCORES),
+                        QuickFeature(Icons.Default.EditNote, "Điểm ảo", KmaRed, Routes.VIRTUAL_SCORES),
+                        QuickFeature(Icons.Default.EmojiEvents, "Học bổng", KmaRed, Routes.SCHOLARSHIP),
+                        QuickFeature(Icons.Default.EventNote, "Lịch ảo", KmaRed, Routes.VIRTUAL_CALENDAR),
+                        QuickFeature(Icons.Default.School, "Chương trình", KmaRed, Routes.ABOUT)
                     )
                     // 3 columns grid
                     features.chunked(3).forEach { row ->
@@ -148,7 +150,7 @@ fun HomeScreen(navController: NavController) {
                     Text("Về KMA", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = OnSurfaceHigh)
                     Spacer(Modifier.height(12.dp))
                     Box {
-                        HorizontalPager(count = slides.size, state = pagerState, modifier = Modifier.fillMaxWidth()) { page ->
+                        HorizontalPager(pageCount = slides.size, state = pagerState, modifier = Modifier.fillMaxWidth()) { page ->
                             Card(
                                 modifier = Modifier.fillMaxWidth().height(140.dp),
                                 shape = RoundedCornerShape(16.dp),

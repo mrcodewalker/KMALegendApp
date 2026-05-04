@@ -64,7 +64,7 @@ val CT_PROGRAM = ProgramData(
     code = "CT", name = "Công nghệ thông tin",
     shortDesc = "Kỹ thuật phần mềm nhúng & di động",
     degree = "Cử nhân / Kỹ sư", duration = "4 – 5 năm", totalCredits = 176,
-    accentColor = Color(0xFF1565C0), accentLight = Color(0xFFE8F0FE),
+    accentColor = KmaRed, accentLight = KmaRedSurface,
     icon = Icons.Default.Computer,
     highlights = listOf("176 TC" to "Tổng tín chỉ", "10 HK" to "Học kỳ", "4–5 năm" to "Thời gian", "2 bằng" to "Cử nhân/KS"),
     overview = "Ngành Công nghệ thông tin tại KMA đào tạo kỹ sư phần mềm chuyên sâu về hệ thống nhúng và phần mềm di động — hai lĩnh vực cốt lõi của cuộc cách mạng công nghiệp 4.0. Sinh viên được trang bị nền tảng toán học vững chắc, kỹ năng lập trình đa nền tảng (Linux, Android, ARM), thiết kế hệ thống nhúng thời gian thực và phát triển ứng dụng di động hiện đại. Chương trình kết hợp lý thuyết chuyên sâu với thực hành dự án thực tế, giúp sinh viên sẵn sàng làm việc tại các tập đoàn công nghệ lớn trong và ngoài nước.",
@@ -77,11 +77,11 @@ val CT_PROGRAM = ProgramData(
         CareerPath("Nghiên cứu & Giảng dạy", Icons.Default.School, "Học sau đại học, nghiên cứu AI/ML trên nền nhúng")
     ),
     skills = listOf(
-        SkillTag("C/C++", Color(0xFF1565C0)), SkillTag("Linux Kernel", Color(0xFF2E7D32)),
-        SkillTag("Android", Color(0xFF00695C)), SkillTag("ARM Assembly", Color(0xFF6A1B9A)),
-        SkillTag("RTOS", Color(0xFFE65100)), SkillTag("IoT", Color(0xFF0277BD)),
-        SkillTag("Python", Color(0xFF1565C0)), SkillTag("Git", Color(0xFFC62828)),
-        SkillTag("Docker", Color(0xFF0277BD)), SkillTag("SQL", Color(0xFF558B2F))
+        SkillTag("C/C++", KmaRed), SkillTag("Linux Kernel", KmaRed),
+        SkillTag("Android", KmaRed), SkillTag("ARM Assembly", KmaRed),
+        SkillTag("RTOS", KmaRed), SkillTag("IoT", KmaRed),
+        SkillTag("Python", KmaRed), SkillTag("Git", KmaRed),
+        SkillTag("Docker", KmaRed), SkillTag("SQL", KmaRed)
     ),
     semesters = listOf(
         SemesterData("HK1", listOf(SubjectItem("Giải tích 1", 3, SubjectType.GENERAL), SubjectItem("Đại số tuyến tính", 3, SubjectType.GENERAL), SubjectItem("Tin học đại cương", 2, SubjectType.GENERAL), SubjectItem("Triết học Mác – Lê nin", 3, SubjectType.GENERAL), SubjectItem("Giáo dục quốc phòng an ninh", 8, SubjectType.GENERAL), SubjectItem("Giáo dục thể chất 1", 1, SubjectType.GENERAL))),
@@ -101,7 +101,7 @@ val AT_PROGRAM = ProgramData(
     code = "AT", name = "An toàn thông tin",
     shortDesc = "Bảo mật hệ thống & mạng máy tính",
     degree = "Cử nhân / Kỹ sư", duration = "4 – 4,5 năm", totalCredits = 153,
-    accentColor = Color(0xFFCC0000), accentLight = Color(0xFFFFF0F0),
+    accentColor = KmaRed, accentLight = KmaRedSurface,
     icon = Icons.Default.Security,
     highlights = listOf("153 TC" to "Tổng tín chỉ", "9 HK" to "Học kỳ", "4–4.5 năm" to "Thời gian", "3 chuyên ngành" to "Định hướng"),
     overview = "Ngành An toàn thông tin tại KMA là một trong những chương trình đào tạo bảo mật hàng đầu Việt Nam, gắn liền với sứ mệnh bảo vệ an ninh mạng quốc gia. Sinh viên được đào tạo chuyên sâu về mật mã học, phân tích mã độc, kiểm thử xâm nhập, điều tra số và quản lý an toàn hệ thống. Chương trình có 3 định hướng chuyên ngành rõ ràng, giúp sinh viên lựa chọn con đường phù hợp: bảo mật hệ thống, kỹ nghệ an toàn mạng hoặc phát triển phần mềm an toàn.",
@@ -114,11 +114,11 @@ val AT_PROGRAM = ProgramData(
         CareerPath("Security Engineer", Icons.Default.Lock, "Thiết kế kiến trúc bảo mật cho hệ thống doanh nghiệp")
     ),
     skills = listOf(
-        SkillTag("Mật mã học", Color(0xFFCC0000)), SkillTag("Pentest", Color(0xFF6A1B9A)),
-        SkillTag("Wireshark", Color(0xFF1565C0)), SkillTag("Metasploit", Color(0xFF2E7D32)),
-        SkillTag("Forensics", Color(0xFFE65100)), SkillTag("Malware Analysis", Color(0xFFCC0000)),
-        SkillTag("Python", Color(0xFF1565C0)), SkillTag("Linux", Color(0xFF2E7D32)),
-        SkillTag("Network Security", Color(0xFF0277BD)), SkillTag("ISO 27001", Color(0xFF558B2F))
+        SkillTag("Mật mã học", KmaRed), SkillTag("Pentest", KmaRed),
+        SkillTag("Wireshark", KmaRed), SkillTag("Metasploit", KmaRed),
+        SkillTag("Forensics", KmaRed), SkillTag("Malware Analysis", KmaRed),
+        SkillTag("Python", KmaRed), SkillTag("Linux", KmaRed),
+        SkillTag("Network Security", KmaRed), SkillTag("ISO 27001", KmaRed)
     ),
     semesters = listOf(
         SemesterData("HK1", listOf(SubjectItem("Giáo dục quốc phòng an ninh", 8, SubjectType.GENERAL), SubjectItem("Tin học đại cương", 2, SubjectType.GENERAL), SubjectItem("Triết học Mác – Lênin", 3, SubjectType.GENERAL), SubjectItem("Giải tích 1", 3, SubjectType.GENERAL), SubjectItem("Đại số tuyến tính", 3, SubjectType.GENERAL), SubjectItem("Giáo dục thể chất 1", 1, SubjectType.GENERAL), SubjectItem("Pháp luật đại cương", 2, SubjectType.GENERAL))),
@@ -137,7 +137,7 @@ val DT_PROGRAM = ProgramData(
     code = "DT", name = "Điện tử viễn thông",
     shortDesc = "Hệ thống nhúng & điều khiển tự động",
     degree = "Cử nhân / Kỹ sư", duration = "4 – 4,5 năm", totalCredits = 169,
-    accentColor = Color(0xFF2E7D32), accentLight = Color(0xFFE8F5E9),
+    accentColor = KmaRed, accentLight = KmaRedSurface,
     icon = Icons.Default.DeveloperBoard,
     highlights = listOf("169 TC" to "Tổng tín chỉ", "9 HK" to "Học kỳ", "4–4.5 năm" to "Thời gian", "1 chuyên ngành" to "Định hướng"),
     overview = "Ngành Điện tử viễn thông tại KMA đào tạo kỹ sư chuyên sâu về hệ thống nhúng, điều khiển tự động và IoT — nền tảng của các hệ thống thông minh hiện đại. Sinh viên được học từ nền tảng điện tử analog/digital, vi xử lý, đến thiết kế VLSI, FPGA và phát triển ứng dụng IoT. Chương trình chú trọng thực hành với nhiều đồ án kỹ thuật, giúp sinh viên có khả năng thiết kế và triển khai các hệ thống điện tử thông minh trong công nghiệp, y tế và quốc phòng.",
@@ -150,11 +150,11 @@ val DT_PROGRAM = ProgramData(
         CareerPath("Kỹ sư viễn thông", Icons.Default.CellTower, "Thiết kế và vận hành hệ thống truyền thông không dây")
     ),
     skills = listOf(
-        SkillTag("C/C++ nhúng", Color(0xFF2E7D32)), SkillTag("VHDL/Verilog", Color(0xFF6A1B9A)),
-        SkillTag("PLC/SCADA", Color(0xFFE65100)), SkillTag("RTOS", Color(0xFF1565C0)),
-        SkillTag("IoT/MQTT", Color(0xFF0277BD)), SkillTag("ARM Cortex", Color(0xFFCC0000)),
-        SkillTag("FPGA", Color(0xFF558B2F)), SkillTag("Altium Designer", Color(0xFF2E7D32)),
-        SkillTag("MATLAB", Color(0xFFE65100)), SkillTag("Python", Color(0xFF1565C0))
+        SkillTag("C/C++ nhúng", KmaRed), SkillTag("VHDL/Verilog", KmaRed),
+        SkillTag("PLC/SCADA", KmaRed), SkillTag("RTOS", KmaRed),
+        SkillTag("IoT/MQTT", KmaRed), SkillTag("ARM Cortex", KmaRed),
+        SkillTag("FPGA", KmaRed), SkillTag("Altium Designer", KmaRed),
+        SkillTag("MATLAB", KmaRed), SkillTag("Python", KmaRed)
     ),
     semesters = listOf(
         SemesterData("HK1", listOf(SubjectItem("Giáo dục quốc phòng an ninh", 8, SubjectType.GENERAL), SubjectItem("Triết học Mác – Lênin", 3, SubjectType.GENERAL), SubjectItem("Toán cao cấp 1", 4, SubjectType.GENERAL), SubjectItem("Vật lý đại cương 1", 3, SubjectType.GENERAL), SubjectItem("Tin học đại cương", 2, SubjectType.GENERAL), SubjectItem("Giáo dục thể chất 1", 1, SubjectType.GENERAL))),
@@ -399,7 +399,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.curriculumItems(prog:
             }
             val typeLabels = mapOf(
                 SubjectType.GENERAL    to ("Đại cương" to Color(0xFF78909C)),
-                SubjectType.CORE       to ("Cơ sở ngành" to Color(0xFF1565C0)),
+                SubjectType.CORE       to ("Cơ sở ngành" to KmaRed),
                 SubjectType.SPECIALIZED to ("Chuyên ngành" to prog.accentColor),
                 SubjectType.THESIS     to ("Đồ án/TN" to Color(0xFFE65100))
             )
@@ -443,7 +443,7 @@ private fun SemesterCard(sem: SemesterData, accentColor: Color) {
     val totalTC = sem.subjects.sumOf { it.credits }
     val typeColor = mapOf(
         SubjectType.GENERAL     to Color(0xFF78909C),
-        SubjectType.CORE        to Color(0xFF1565C0),
+        SubjectType.CORE        to KmaRed,
         SubjectType.SPECIALIZED to accentColor,
         SubjectType.THESIS      to Color(0xFFE65100)
     )
