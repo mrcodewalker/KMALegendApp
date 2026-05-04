@@ -35,11 +35,11 @@ private val DarkColors = darkColors(
 
 @Composable
 fun KMALegendTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = false, // Cố định light mode, không theo thiết bị
     content: @Composable () -> Unit
 ) {
     MaterialTheme(
-        colors = if (darkTheme) DarkColors else LightColors,
+        colors = LightColors,
         typography = Typography,
         shapes = Shapes,
         content = content

@@ -1,7 +1,12 @@
 package com.example.kmalegend.ui.schedule
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -21,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.kmalegend.data.*
+import com.example.kmalegend.notification.NotificationScheduler
+import com.example.kmalegend.notification.ScheduleNotificationWorker
 import com.example.kmalegend.ui.common.*
 import com.example.kmalegend.ui.navigation.Routes
 import com.example.kmalegend.ui.theme.*
@@ -39,6 +46,22 @@ fun ScheduleScreen(navController: NavController) {
     var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
     var selectedEvent by remember { mutableStateOf<CourseSchedule?>(null) }
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showNotifDialog by remember { mutableStateOf(false) }
+
+    // Notification permission state
+    var notifEnabled by remember {
+        mutableStateOf(
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                androidx.core.app.NotificationManagerCompat.from(context).areNotificationsEnabled()
+            } else true
+        )
+    }
+    val permLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        notifEnabled = granted
+        if (granted) NotificationScheduler.schedule(context)
+    }
 
     val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     val selectedDateStr = sdf.format(selectedDate.time)
@@ -48,6 +71,18 @@ fun ScheduleScreen(navController: NavController) {
     val eventDates = remember(schedule) {
         schedule.flatMap { c -> c.study_days.split(" ").map { it.trim() } }.toSet()
     }
+    // Map: dateStr → list of colors (one per course on that day)
+    val eventColorMap = remember(schedule) {
+        val map = mutableMapOf<String, MutableList<Color>>()
+        schedule.forEach { course ->
+            val color = getColorFromSeed(course.course_name)
+            course.study_days.split(" ").forEach { day ->
+                val key = day.trim()
+                if (key.isNotEmpty()) map.getOrPut(key) { mutableListOf() }.add(color)
+            }
+        }
+        map
+    }
 
     Scaffold(
         topBar = {
@@ -56,6 +91,15 @@ fun ScheduleScreen(navController: NavController) {
                 navController = navController,
                 showBack = true,
                 actions = {
+                    IconButton(onClick = { showNotifDialog = true }) {
+                        Icon(
+                            if (notifEnabled) Icons.Default.Notifications else Icons.Default.NotificationsOff,
+                            contentDescription = null, tint = White
+                        )
+                    }
+                    IconButton(onClick = { ScheduleNotificationWorker.sendTestNotification(context) }) {
+                        Icon(Icons.Default.NotificationsActive, contentDescription = "Test notification", tint = White)
+                    }
                     IconButton(onClick = { showLogoutDialog = true }) {
                         Icon(Icons.Default.Logout, contentDescription = null, tint = White)
                     }
@@ -129,7 +173,7 @@ fun ScheduleScreen(navController: NavController) {
                             } else {
                                 val dayCal = (currentMonth.clone() as Calendar).apply { set(Calendar.DAY_OF_MONTH, dayNum) }
                                 val dayStr = sdf.format(dayCal.time)
-                                val hasEvent = dayStr in eventDates
+                                val dayColors = eventColorMap[dayStr] ?: emptyList()
                                 val isToday = dayNum == today.get(Calendar.DAY_OF_MONTH) &&
                                         currentMonth.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
                                         currentMonth.get(Calendar.YEAR) == today.get(Calendar.YEAR)
@@ -141,15 +185,26 @@ fun ScheduleScreen(navController: NavController) {
                                             when { isSelected -> KmaRed; isToday -> KmaRedSurface; else -> Color.Transparent },
                                             CircleShape
                                         )
-                                        .clickable { selectedDate = dayCal },
+                                        .clickable(
+                                            indication = null,
+                                            interactionSource = remember { MutableInteractionSource() }
+                                        ) { selectedDate = dayCal },
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                         Text("$dayNum", fontSize = 13.sp,
                                             color = when { isSelected -> White; isToday -> KmaRed; else -> OnSurfaceHigh },
                                             fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Normal)
-                                        if (hasEvent) {
-                                            Box(modifier = Modifier.size(4.dp).background(if (isSelected) White else KmaRed, CircleShape))
+                                        if (dayColors.isNotEmpty()) {
+                                            Row(
+                                                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                                                modifier = Modifier.padding(top = 1.dp)
+                                            ) {
+                                                repeat(dayColors.size.coerceAtMost(4)) {
+                                                    Box(modifier = Modifier.size(4.dp).background(
+                                                        if (isSelected) White else KmaRed, CircleShape))
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -198,6 +253,23 @@ fun ScheduleScreen(navController: NavController) {
     selectedEvent?.let { course ->
         EventDetailDialog(course = course, selectedDate = selectedDateStr, onDismiss = { selectedEvent = null })
     }
+
+    if (showNotifDialog) NotificationSettingsDialog(
+        enabled   = notifEnabled,
+        onEnable  = {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                permLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                notifEnabled = true
+                NotificationScheduler.schedule(context)
+            }
+        },
+        onDisable = {
+            notifEnabled = false
+            NotificationScheduler.cancel(context)
+        },
+        onDismiss = { showNotifDialog = false }
+    )
 
     if (showLogoutDialog) ConfirmDialog(
         title = "Đăng xuất",
@@ -298,4 +370,103 @@ fun getColorFromSeed(seed: String): Color {
     val hue = Math.abs(hash % 360).toFloat()
     val argb = android.graphics.Color.HSVToColor(floatArrayOf(hue, 0.65f, 0.55f))
     return Color(argb)
+}
+
+@Composable
+fun NotificationSettingsDialog(
+    enabled: Boolean,
+    onEnable: () -> Unit,
+    onDisable: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(20.dp),
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier.size(40.dp).background(KmaRedSurface, RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.Notifications, contentDescription = null, tint = KmaRed, modifier = Modifier.size(22.dp))
+                }
+                Spacer(Modifier.width(12.dp))
+                Text("Thông báo lịch học", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            }
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    "KMA Legend sẽ nhắc bạn trước mỗi buổi học:",
+                    fontSize = 13.sp, color = OnSurfaceMedium
+                )
+                listOf(
+                    Triple(Icons.Default.AccessTime,            "12 giờ trước",  "Nhắc nhở từ sớm"),
+                    Triple(Icons.Default.Alarm,                 "6 giờ trước",   "Chuẩn bị cho buổi học"),
+                    Triple(Icons.Default.NotificationImportant, "1 giờ trước",   "Sắp đến giờ học!"),
+                    Triple(Icons.Default.Timer,                 "30 phút trước", "Chuẩn bị đến lớp"),
+                    Triple(Icons.Default.Timer,                 "15 phút trước", "Lên đường thôi!"),
+                    Triple(Icons.Default.FlashOn,               "5 phút trước",  "Vào lớp ngay!")
+                ).forEach { (icon, time, desc) ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(KmaRedSurface, RoundedCornerShape(10.dp))
+                            .padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(icon, contentDescription = null, tint = KmaRed, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(10.dp))
+                        Column {
+                            Text(time, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = OnSurfaceHigh)
+                            Text(desc, fontSize = 11.sp, color = OnSurfaceMedium)
+                        }
+                    }
+                }
+                if (enabled) {
+                    Card(
+                        backgroundColor = SuccessSurface,
+                        shape = RoundedCornerShape(10.dp),
+                        elevation = 0.dp,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.CheckCircle, contentDescription = null,
+                                tint = Success, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Thông báo đang bật", fontSize = 12.sp, color = Success, fontWeight = FontWeight.Medium)
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            if (!enabled) {
+                Button(
+                    onClick = { onEnable(); onDismiss() },
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = KmaRed),
+                    elevation = ButtonDefaults.elevation(0.dp)
+                ) {
+                    Icon(Icons.Default.Notifications, contentDescription = null, tint = White, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Bật thông báo", color = White, fontWeight = FontWeight.SemiBold)
+                }
+            } else {
+                TextButton(onClick = onDismiss) {
+                    Text("Đóng", color = KmaRed, fontWeight = FontWeight.SemiBold)
+                }
+            }
+        },
+        dismissButton = {
+            if (enabled) {
+                TextButton(onClick = { onDisable(); onDismiss() }) {
+                    Text("Tắt thông báo", color = OnSurfaceMedium)
+                }
+            }
+        }
+    )
 }

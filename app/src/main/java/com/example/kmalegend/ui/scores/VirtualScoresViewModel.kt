@@ -116,6 +116,15 @@ class VirtualScoresViewModel(application: Application) : AndroidViewModel(applic
         _uiState.value = _uiState.value.copy(virtualScores = list)
     }
 
+    fun updateScore(index: Int, updated: VirtualScore) {
+        val list = _uiState.value.virtualScores.toMutableList()
+        if (index < list.size) {
+            list[index] = updated
+            prefs.saveVirtualScores(list)
+            _uiState.value = _uiState.value.copy(virtualScores = list)
+        }
+    }
+
     fun removeScore(index: Int) {
         val list = _uiState.value.virtualScores.toMutableList()
         if (index < list.size) { list.removeAt(index); prefs.saveVirtualScores(list) }

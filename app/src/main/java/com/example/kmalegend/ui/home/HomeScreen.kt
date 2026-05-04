@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.accompanist.pager.*import com.example.kmalegend.data.PrefsManager
 import com.example.kmalegend.ui.common.KmaTopBar
+import com.example.kmalegend.ui.common.KmaDrawerScaffold
 import com.example.kmalegend.ui.navigation.Routes
 import com.example.kmalegend.ui.theme.*
 import kotlinx.coroutines.delay
@@ -46,7 +47,12 @@ fun HomeScreen(navController: NavController) {
                         while (true) { delay(5000); pagerState.animateScrollToPage((pagerState.currentPage + 1) % slides.size) }
                     }
 
-    Scaffold(topBar = { KmaTopBar(title = "KMA Legend", navController = navController) }) { padding ->
+    KmaDrawerScaffold(
+        navController = navController,
+        topBar = { onMenuClick ->
+            KmaTopBar(title = "KMA Legend", navController = navController, onMenuClick = onMenuClick)
+        }
+    ) { padding ->
         LazyColumn(modifier = Modifier.fillMaxSize().padding(padding)) {
 
             // Welcome banner
@@ -74,6 +80,35 @@ fun HomeScreen(navController: NavController) {
                                 studentInfo?.student_code ?: "Học viện Kỹ thuật Mật mã",
                                 color = White.copy(alpha = 0.75f), fontSize = 13.sp
                             )
+                        }
+                    }
+                }
+            }
+
+            // Notice: chưa đăng nhập lịch học
+            if (studentInfo == null) {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = 0.dp,
+                        backgroundColor = InfoSurface
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.Info, contentDescription = null, tint = Info, modifier = Modifier.size(22.dp))
+                            Spacer(Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Chưa có dữ liệu lịch học", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = Info)
+                                Text("Vào Lịch học để đăng nhập và tải dữ liệu", fontSize = 12.sp, color = Info.copy(alpha = 0.8f))
+                            }
+                            Spacer(Modifier.width(8.dp))
+                            TextButton(
+                                onClick = { navController.navigate(Routes.SCHEDULE) },
+                                colors = ButtonDefaults.textButtonColors(contentColor = Info)
+                            ) { Text("Vào ngay", fontWeight = FontWeight.SemiBold, fontSize = 12.sp) }
                         }
                     }
                 }
@@ -174,14 +209,15 @@ fun HomeScreen(navController: NavController) {
                     Text("Các khoa", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = OnSurfaceHigh)
                     Spacer(Modifier.height(12.dp))
                     val depts = listOf(
-                        "An toàn thông tin" to Icons.Default.Security,
-                        "Công nghệ thông tin" to Icons.Default.Computer,
-                        "Điện tử viễn thông" to Icons.Default.Router,
-                        "An toàn mạng" to Icons.Default.Shield
+                        Triple("An toàn thông tin", Icons.Default.Security, "AT"),
+                        Triple("Công nghệ thông tin", Icons.Default.Computer, "CT"),
+                        Triple("Điện tử viễn thông", Icons.Default.Router, "DT"),
+                        Triple("An toàn mạng", Icons.Default.Shield, "AT")
                     )
-                    depts.forEach { (name, icon) ->
+                    depts.forEach { (name, icon, code) ->
                         Card(
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                                .clickable { navController.navigate(Routes.aboutProgram(code)) },
                             shape = RoundedCornerShape(12.dp),
                             elevation = 0.dp,
                             backgroundColor = White
@@ -194,8 +230,10 @@ fun HomeScreen(navController: NavController) {
                                     Icon(icon, contentDescription = null, tint = KmaRed, modifier = Modifier.size(20.dp))
                                 }
                                 Spacer(Modifier.width(14.dp))
-                                Text(name, fontWeight = FontWeight.Medium, style = MaterialTheme.typography.body2)
-                                Spacer(Modifier.weight(1f))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(name, fontWeight = FontWeight.Medium, style = MaterialTheme.typography.body2)
+                                    Text("Xem chương trình học", fontSize = 11.sp, color = OnSurfaceMedium)
+                                }
                                 Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Outline, modifier = Modifier.size(18.dp))
                             }
                         }

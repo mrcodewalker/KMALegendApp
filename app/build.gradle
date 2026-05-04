@@ -88,6 +88,9 @@ dependencies {
     // DataStore (alternative to SharedPreferences)
     implementation 'androidx.datastore:datastore-preferences:1.0.0'
 
+    // WorkManager (for scheduled notifications)
+    implementation 'androidx.work:work-runtime-ktx:2.8.1'
+
     // Accompanist (pager for carousel)
     implementation 'com.google.accompanist:accompanist-pager:0.30.1'
     implementation 'com.google.accompanist:accompanist-pager-indicators:0.30.1'

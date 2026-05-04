@@ -19,6 +19,7 @@ class PrefsManager(context: Context) {
         const val KEY_SAVED_CLASSES = "saved_classes"
         const val KEY_SCORES_SEARCH_HISTORY = "scores_search_history"
         const val KEY_RSA_PUBLIC_KEY = "rsa_public_key"
+        const val KEY_AVATAR_URI = "avatar_uri"
     }
 
     fun isLoggedIn(): Boolean = prefs.getString(KEY_SCHEDULE_SECRET, null) != null
@@ -139,4 +140,8 @@ class PrefsManager(context: Context) {
     fun saveCourseColors(colors: Map<String, Int>) {
         prefs.edit().putString(KEY_SCHEDULE_COURSE_COLORS, gson.toJson(colors)).apply()
     }
+
+    fun getAvatarUri(): String? = prefs.getString(KEY_AVATAR_URI, null)
+    fun saveAvatarUri(uri: String) { prefs.edit().putString(KEY_AVATAR_URI, uri).apply() }
+    fun clearAvatarUri() { prefs.edit().remove(KEY_AVATAR_URI).apply() }
 }

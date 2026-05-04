@@ -4,7 +4,9 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -21,98 +23,169 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.kmalegend.ui.navigation.Routes
 import com.example.kmalegend.ui.theme.*
+import kotlinx.coroutines.launch
 
 @Composable
 fun KmaTopBar(
     title: String,
     navController: NavController,
     showBack: Boolean = false,
+    onMenuClick: (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
-    var drawerOpen by remember { mutableStateOf(false) }
     TopAppBar(
         title = { Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.subtitle1, color = White) },
         backgroundColor = KmaRed,
         contentColor = White,
         elevation = 0.dp,
-        navigationIcon = if (showBack) ({
-            IconButton(onClick = { navController.popBackStack() }) {
-                Icon(Icons.Default.ArrowBack, contentDescription = null, tint = White)
+        navigationIcon = {
+            if (showBack) {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = null, tint = White)
+                }
+            } else {
+                IconButton(onClick = { onMenuClick?.invoke() }) {
+                    Icon(Icons.Default.Menu, contentDescription = null, tint = White)
+                }
             }
-        }) else ({
-            IconButton(onClick = { drawerOpen = true }) {
-                Icon(Icons.Default.Menu, contentDescription = null, tint = White)
-            }
-        }),
+        },
         actions = actions
     )
-    if (drawerOpen) NavigationDrawer(navController = navController, onDismiss = { drawerOpen = false })
 }
 
 @Composable
-private fun NavigationDrawer(navController: NavController, onDismiss: () -> Unit) {
-    Dialog(onDismissRequest = onDismiss) {
-        Card(
-            modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-            shape = RoundedCornerShape(20.dp),
-            elevation = 8.dp,
-            backgroundColor = White
+fun KmaDrawerScaffold(
+    navController: NavController,
+    topBar: @Composable (onMenuClick: () -> Unit) -> Unit,
+    content: @Composable (PaddingValues) -> Unit
+) {
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
+    ModalDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            NavigationDrawerContent(navController = navController, onDismiss = {
+                scope.launch { drawerState.close() }
+            })
+        },
+        drawerShape = RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp),
+        drawerBackgroundColor = White
+    ) {
+        Scaffold(
+            topBar = { topBar { scope.launch { drawerState.open() } } },
+            content = content
+        )
+    }
+}
+
+@Composable
+private fun NavigationDrawerContent(navController: NavController, onDismiss: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
+    Column(modifier = Modifier.fillMaxHeight()) {
+        Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+        // Header
+        Box(
+            modifier = Modifier.fillMaxWidth()
+                .background(KmaRed)
+                .padding(20.dp)
         ) {
-            Column {
-                // Header
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
-                    modifier = Modifier.fillMaxWidth()
-                        .background(KmaRed)
-                        .padding(20.dp)
+                    modifier = Modifier.size(44.dp).background(White.copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier.size(44.dp).background(White.copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Default.School, contentDescription = null, tint = White, modifier = Modifier.size(26.dp))
-                        }
-                        Spacer(Modifier.width(12.dp))
-                        Column {
-                            Text("KMA Legend", fontWeight = FontWeight.Bold, color = White, fontSize = 16.sp)
-                            Text("Học viện Kỹ thuật Mật mã", color = White.copy(alpha = 0.75f), fontSize = 12.sp)
-                        }
-                    }
+                    Icon(Icons.Default.School, contentDescription = null, tint = White, modifier = Modifier.size(26.dp))
                 }
-                // Menu items
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    val items = listOf(
-                        Triple(Icons.Default.Home, "Trang chủ", Routes.HOME),
-                        Triple(Icons.Default.CalendarToday, "Lịch học", Routes.SCHEDULE),
-                        Triple(Icons.Default.Grade, "Tra cứu điểm", Routes.SCORES),
-                        Triple(Icons.Default.EditNote, "Bảng điểm ảo", Routes.VIRTUAL_SCORES),
-                        Triple(Icons.Default.EmojiEvents, "Học bổng", Routes.SCHOLARSHIP),
-                        Triple(Icons.Default.EventNote, "Lịch ảo", Routes.VIRTUAL_CALENDAR),
-                        Triple(Icons.Default.School, "Chương trình học", Routes.ABOUT),
-                        Triple(Icons.Default.Favorite, "Ủng hộ", Routes.DONATE),
-                        Triple(Icons.Default.Feedback, "Phản hồi", Routes.FEEDBACK),
-                        Triple(Icons.Default.QuestionAnswer, "Q&A", Routes.QA)
-                    )
-                    items.forEach { (icon, label, route) ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth()
-                                .clickable { onDismiss(); navController.navigate(route) { launchSingleTop = true } }
-                                .padding(horizontal = 20.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier.size(36.dp).background(KmaRedSurface, RoundedCornerShape(10.dp)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(icon, contentDescription = null, tint = KmaRed, modifier = Modifier.size(20.dp))
-                            }
-                            Spacer(Modifier.width(14.dp))
-                            Text(label, style = MaterialTheme.typography.subtitle2, color = OnSurfaceHigh)
-                        }
-                    }
+                Spacer(Modifier.width(12.dp))
+                Column {
+                    Text("KMA Legend", fontWeight = FontWeight.Bold, color = White, fontSize = 16.sp)
+                    Text("Học viện Kỹ thuật Mật mã", color = White.copy(alpha = 0.75f), fontSize = 12.sp)
                 }
             }
         }
+        // Menu items
+        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+            val items = listOf(
+                Triple(Icons.Default.Home, "Trang chủ", Routes.HOME),
+                Triple(Icons.Default.CalendarToday, "Lịch học", Routes.SCHEDULE),
+                Triple(Icons.Default.Grade, "Tra cứu điểm", Routes.SCORES),
+                Triple(Icons.Default.EditNote, "Bảng điểm ảo", Routes.VIRTUAL_SCORES),
+                Triple(Icons.Default.EmojiEvents, "Học bổng", Routes.SCHOLARSHIP),
+                Triple(Icons.Default.EventNote, "Lịch ảo", Routes.VIRTUAL_CALENDAR),
+                Triple(Icons.Default.School, "Chương trình học", Routes.ABOUT),
+                Triple(Icons.Default.Favorite, "Ủng hộ", Routes.DONATE),
+                Triple(Icons.Default.Feedback, "Phản hồi", Routes.FEEDBACK),
+                Triple(Icons.Default.QuestionAnswer, "Q&A", Routes.QA)
+            )
+            items.forEach { (icon, label, route) ->
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                        .clickable { onDismiss(); navController.navigate(route) { launchSingleTop = true } }
+                        .padding(horizontal = 20.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier.size(36.dp).background(KmaRedSurface, RoundedCornerShape(10.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(icon, contentDescription = null, tint = KmaRed, modifier = Modifier.size(20.dp))
+                    }
+                    Spacer(Modifier.width(14.dp))
+                    Text(label, style = MaterialTheme.typography.subtitle2, color = OnSurfaceHigh)
+                }
+            }
+        }
+        } // end scrollable column
+
+        // Footer logout
+        Divider(color = Outline)
+        Row(
+            modifier = Modifier.fillMaxWidth()
+                .clickable { showLogoutDialog = true }
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier.size(36.dp).background(ErrorSurface, RoundedCornerShape(10.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.Logout, contentDescription = null, tint = Error, modifier = Modifier.size(20.dp))
+            }
+            Spacer(Modifier.width(14.dp))
+            Text("Đăng xuất", style = MaterialTheme.typography.subtitle2, color = Error, fontWeight = FontWeight.SemiBold)
+        }
+    } // end outer Column
+
+    if (showLogoutDialog) {
+        val prefs = remember { com.example.kmalegend.data.PrefsManager(context) }
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            shape = RoundedCornerShape(20.dp),
+            title = { Text("Đăng xuất", fontWeight = FontWeight.Bold) },
+            text = { Text("Bạn có chắc muốn đăng xuất?", color = OnSurfaceMedium) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        prefs.logout()
+                        onDismiss()
+                        navController.navigate(com.example.kmalegend.ui.navigation.Routes.LOGIN) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    },
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Error),
+                    elevation = ButtonDefaults.elevation(0.dp)
+                ) { Text("Đăng xuất", color = White, fontWeight = FontWeight.SemiBold) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("Hủy", color = OnSurfaceMedium)
+                }
+            }
+        )
     }
 }
 

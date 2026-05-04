@@ -2,6 +2,7 @@ package com.example.kmalegend.ui.scholarship
 
 import android.app.Application
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -69,39 +70,73 @@ class ScholarshipViewModel(application: Application) : AndroidViewModel(applicat
     fun stopFireworks() { _uiState.value = _uiState.value.copy(fireworksActive = false) }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ScholarshipScreen(navController: NavController, vm: ScholarshipViewModel = viewModel()) {
     val uiState by vm.uiState.collectAsState()
     val cohorts = listOf("CT05","CT06","CT07","CT08","CT09","AT17","AT18","AT19","AT20","AT21","DT04","DT05","DT06","DT07","DT08")
-    var expanded by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
+    val scope = rememberCoroutineScope()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            topBar = {
-                KmaTopBar(
-                    title = "Học bổng",
-                    navController = navController,
-                    showBack = true,
-                    actions = {
-                        IconButton(onClick = { vm.toggleFireworks() }) {
-                            Icon(if (uiState.showFireworks) Icons.Default.Celebration else Icons.Outlined.Celebration, contentDescription = null, tint = White)
-                        }
+        ModalBottomSheetLayout(
+            sheetState = sheetState,
+            sheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+            sheetContent = {
+                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Box(modifier = Modifier.width(40.dp).height(4.dp).background(Outline, RoundedCornerShape(2.dp)))
                     }
-                )
+                    Spacer(Modifier.height(12.dp))
+                    Text("Chọn khóa học", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Spacer(Modifier.height(12.dp))
+                    cohorts.chunked(3).forEach { row ->
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            row.forEach { code ->
+                                Button(
+                                    onClick = { scope.launch { sheetState.hide() }; vm.load(code) },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        backgroundColor = if (code == uiState.selectedCode) KmaRed else SurfaceVariant
+                                    )
+                                ) {
+                                    Text(code, color = if (code == uiState.selectedCode) White else OnSurfaceHigh, fontWeight = FontWeight.SemiBold)
+                                }
+                            }
+                            repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
+                        }
+                        Spacer(Modifier.height(8.dp))
+                    }
+                    Spacer(Modifier.height(16.dp))
+                }
             }
-        ) { padding ->
-            Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-                // Selector
-                Card(modifier = Modifier.fillMaxWidth().padding(16.dp), shape = RoundedCornerShape(16.dp), elevation = 0.dp, backgroundColor = White) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Chọn khóa học", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.subtitle1)
-                        Text("Xem bảng xếp hạng học bổng theo khóa", style = MaterialTheme.typography.caption, color = OnSurfaceMedium)
-                        Spacer(Modifier.height(12.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Box(modifier = Modifier.weight(1f)) {
+        ) {
+            Scaffold(
+                topBar = {
+                    KmaTopBar(
+                        title = "Học bổng",
+                        navController = navController,
+                        showBack = true,
+                        actions = {
+                            IconButton(onClick = { vm.toggleFireworks() }) {
+                                Icon(if (uiState.showFireworks) Icons.Default.Celebration else Icons.Outlined.Celebration, contentDescription = null, tint = White)
+                            }
+                        }
+                    )
+                }
+            ) { padding ->
+                Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+                    // Selector
+                    Card(modifier = Modifier.fillMaxWidth().padding(16.dp), shape = RoundedCornerShape(16.dp), elevation = 0.dp, backgroundColor = White) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("Chọn khóa học", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.subtitle1)
+                            Text("Xem bảng xếp hạng học bổng theo khóa", style = MaterialTheme.typography.caption, color = OnSurfaceMedium)
+                            Spacer(Modifier.height(12.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                                 OutlinedButton(
-                                    onClick = { expanded = true },
-                                    modifier = Modifier.fillMaxWidth(),
+                                    onClick = { scope.launch { sheetState.show() } },
+                                    modifier = Modifier.weight(1f),
                                     shape = RoundedCornerShape(12.dp),
                                     colors = ButtonDefaults.outlinedButtonColors(contentColor = OnSurfaceHigh)
                                 ) {
@@ -109,90 +144,83 @@ fun ScholarshipScreen(navController: NavController, vm: ScholarshipViewModel = v
                                     Spacer(Modifier.weight(1f))
                                     Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                                 }
-                                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                                    cohorts.forEach { code ->
-                                        DropdownMenuItem(onClick = { expanded = false; vm.load(code) }) {
-                                            Text(code, fontWeight = FontWeight.Medium)
+                                Button(
+                                    onClick = { vm.load(uiState.selectedCode) },
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = ButtonDefaults.buttonColors(backgroundColor = KmaRed),
+                                    elevation = ButtonDefaults.elevation(0.dp)
+                                ) { Text("Tải", color = White, fontWeight = FontWeight.SemiBold) }
+                            }
+                        }
+                    }
+
+                    if (uiState.students.isNotEmpty()) {
+                        // Summary chips
+                        Row(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            StatChip("Tổng", "${uiState.students.size}", KmaBlue, Modifier.weight(1f))
+                            StatChip("Top GPA", "%.2f".format(uiState.students.firstOrNull()?.gpa ?: 0.0), KmaGold, Modifier.weight(1f))
+                            StatChip("Khóa", uiState.selectedCode, KmaRed, Modifier.weight(1f))
+                        }
+
+                        // Table header
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+                                .background(KmaRed, RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                                .padding(horizontal = 12.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("#", color = White, fontWeight = FontWeight.SemiBold, modifier = Modifier.width(28.dp), fontSize = 11.sp)
+                            Text("Sinh viên", color = White, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(2f), fontSize = 11.sp)
+                            Text("Lớp", color = White, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f), fontSize = 11.sp)
+                            Text("GPA", color = White, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(0.8f), fontSize = 11.sp)
+                            Text("GPA10", color = White, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(0.8f), fontSize = 11.sp)
+                        }
+
+                        LazyColumn(modifier = Modifier.weight(1f)) {
+                            itemsIndexed(uiState.students) { index, student ->
+                                val bg = when {
+                                    index < 3 -> GoldBg
+                                    index < 10 -> SilverBg
+                                    else -> if (index % 2 == 0) SurfaceVariant else White
+                                }
+                                val rankColor = when {
+                                    index < 3 -> androidx.compose.ui.graphics.Color(0xFFB8860B)
+                                    index < 10 -> KmaBlue
+                                    else -> OnSurfaceMedium
+                                }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+                                        .background(color = bg, shape = androidx.compose.ui.graphics.RectangleShape)
+                                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    // Rank badge
+                                    Box(modifier = Modifier.width(28.dp), contentAlignment = Alignment.Center) {
+                                        if (index < 3) {
+                                            val medal = listOf("🥇", "🥈", "🥉")[index]
+                                            Text(medal, fontSize = 16.sp)
+                                        } else {
+                                            Text("${index + 1}", fontSize = 11.sp, color = OnSurfaceMedium, fontWeight = FontWeight.Medium)
                                         }
                                     }
-                                }
-                            }
-                            Button(
-                                onClick = { vm.load(uiState.selectedCode) },
-                                shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(backgroundColor = KmaRed),
-                                elevation = ButtonDefaults.elevation(0.dp)
-                            ) { Text("Tải", color = White, fontWeight = FontWeight.SemiBold) }
-                        }
-                    }
-                }
-
-                if (uiState.students.isNotEmpty()) {
-                    // Summary chips
-                    Row(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        StatChip("Tổng", "${uiState.students.size}", KmaBlue, Modifier.weight(1f))
-                        StatChip("Top GPA", "%.2f".format(uiState.students.firstOrNull()?.gpa ?: 0.0), KmaGold, Modifier.weight(1f))
-                        StatChip("Khóa", uiState.selectedCode, KmaRed, Modifier.weight(1f))
-                    }
-
-                    // Table header
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-                            .background(KmaRed, RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                            .padding(horizontal = 12.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("#", color = White, fontWeight = FontWeight.SemiBold, modifier = Modifier.width(28.dp), fontSize = 11.sp)
-                        Text("Sinh viên", color = White, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(2f), fontSize = 11.sp)
-                        Text("Lớp", color = White, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f), fontSize = 11.sp)
-                        Text("GPA", color = White, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(0.8f), fontSize = 11.sp)
-                        Text("GPA10", color = White, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(0.8f), fontSize = 11.sp)
-                    }
-
-                    LazyColumn(modifier = Modifier.weight(1f)) {
-                        itemsIndexed(uiState.students) { index, student ->
-                            val bg = when {
-                                index < 3 -> GoldBg
-                                index < 10 -> SilverBg
-                                else -> if (index % 2 == 0) SurfaceVariant else White
-                            }
-                            val rankColor = when {
-                                index < 3 -> androidx.compose.ui.graphics.Color(0xFFB8860B)
-                                index < 10 -> KmaBlue
-                                else -> OnSurfaceMedium
-                            }
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-                                    .background(color = bg, shape = androidx.compose.ui.graphics.RectangleShape)
-                                    .padding(horizontal = 12.dp, vertical = 10.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                // Rank badge
-                                Box(modifier = Modifier.width(28.dp), contentAlignment = Alignment.Center) {
-                                    if (index < 3) {
-                                        val medal = listOf("🥇", "🥈", "🥉")[index]
-                                        Text(medal, fontSize = 16.sp)
-                                    } else {
-                                        Text("${index + 1}", fontSize = 11.sp, color = OnSurfaceMedium, fontWeight = FontWeight.Medium)
+                                    Column(modifier = Modifier.weight(2f)) {
+                                        Text(student.studentName, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = OnSurfaceHigh)
+                                        Text(student.studentCode, fontSize = 10.sp, color = OnSurfaceMedium)
                                     }
+                                    Text(student.studentClass, modifier = Modifier.weight(1f), fontSize = 11.sp, color = OnSurfaceMedium)
+                                    Text("%.2f".format(student.gpa), modifier = Modifier.weight(0.8f), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = rankColor)
+                                    Text("%.1f".format(student.asiaGpa), modifier = Modifier.weight(0.8f), fontSize = 11.sp, color = OnSurfaceMedium)
                                 }
-                                Column(modifier = Modifier.weight(2f)) {
-                                    Text(student.studentName, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = OnSurfaceHigh)
-                                    Text(student.studentCode, fontSize = 10.sp, color = OnSurfaceMedium)
+                                Divider(color = Outline.copy(alpha = 0.4f), modifier = Modifier.padding(horizontal = 16.dp))
+                            }
+                            item {
+                                Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+                                    .background(SurfaceVariant, RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp))
+                                    .padding(10.dp), contentAlignment = Alignment.Center) {
+                                    Text("${uiState.students.size} sinh viên", style = MaterialTheme.typography.caption, color = OnSurfaceMedium)
                                 }
-                                Text(student.studentClass, modifier = Modifier.weight(1f), fontSize = 11.sp, color = OnSurfaceMedium)
-                                Text("%.2f".format(student.gpa), modifier = Modifier.weight(0.8f), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = rankColor)
-                                Text("%.1f".format(student.asiaGpa), modifier = Modifier.weight(0.8f), fontSize = 11.sp, color = OnSurfaceMedium)
+                                Spacer(Modifier.height(16.dp))
                             }
-                            Divider(color = Outline.copy(alpha = 0.4f), modifier = Modifier.padding(horizontal = 16.dp))
-                        }
-                        item {
-                            Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-                                .background(SurfaceVariant, RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp))
-                                .padding(10.dp), contentAlignment = Alignment.Center) {
-                                Text("${uiState.students.size} sinh viên", style = MaterialTheme.typography.caption, color = OnSurfaceMedium)
-                            }
-                            Spacer(Modifier.height(16.dp))
                         }
                     }
                 }
