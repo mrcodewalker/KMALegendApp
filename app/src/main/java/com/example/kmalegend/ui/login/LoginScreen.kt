@@ -2,6 +2,7 @@ package com.example.kmalegend.ui.login
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -26,7 +27,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextAlign
@@ -35,6 +38,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import com.example.kmalegend.R
 import com.example.kmalegend.ui.navigation.Routes
 import com.example.kmalegend.ui.theme.*
 import kotlinx.coroutines.delay
@@ -110,8 +116,6 @@ private fun ShimmerLogo(size: Dp = 88.dp) {
         modifier = Modifier
             .size(size)
             .drawBehind {
-                // Base translucent circle
-                drawCircle(color = Color.White.copy(alpha = 0.18f))
                 // Shimmer sweep
                 val gradient = Brush.linearGradient(
                     colors = listOf(
@@ -127,11 +131,10 @@ private fun ShimmerLogo(size: Dp = 88.dp) {
             .clip(RoundedCornerShape(24.dp)),
         contentAlignment = Alignment.Center
     ) {
-        Icon(
-            Icons.Default.School,
-            contentDescription = null,
-            tint = Color.White,
-            modifier = Modifier.size(48.dp)
+        Image(
+            painter = painterResource(id = R.drawable.logo),
+            contentDescription = "KMA Logo",
+            modifier = Modifier.size(size)
         )
     }
 }
