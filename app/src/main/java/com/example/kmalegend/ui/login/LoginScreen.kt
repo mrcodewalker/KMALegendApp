@@ -113,28 +113,13 @@ private fun ShimmerLogo(size: Dp = 88.dp) {
     )
 
     Box(
-        modifier = Modifier
-            .size(size)
-            .drawBehind {
-                // Shimmer sweep
-                val gradient = Brush.linearGradient(
-                    colors = listOf(
-                        Color.Transparent,
-                        Color.White.copy(alpha = 0.35f),
-                        Color.Transparent
-                    ),
-                    start = Offset(shimmerX * this.size.width - this.size.width, 0f),
-                    end = Offset(shimmerX * this.size.width, this.size.height)
-                )
-                drawCircle(brush = gradient)
-            }
-            .clip(RoundedCornerShape(24.dp)),
+        modifier = Modifier.size(size),
         contentAlignment = Alignment.Center
     ) {
         Image(
             painter = painterResource(id = R.drawable.logo),
             contentDescription = "KMA Logo",
-            modifier = Modifier.size(size)
+            modifier = Modifier.fillMaxSize()
         )
     }
 }
@@ -301,7 +286,7 @@ fun LoginScreen(navController: NavController, vm: LoginViewModel = viewModel()) 
                         alpha = logoAlpha.value
                     )
             ) {
-                ShimmerLogo(size = 90.dp)
+                ShimmerLogo(size = 140.dp)
             }
 
             Spacer(Modifier.height(20.dp))

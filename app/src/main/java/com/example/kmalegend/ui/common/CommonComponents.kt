@@ -13,9 +13,12 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.Image
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import com.example.kmalegend.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -93,12 +96,11 @@ private fun NavigationDrawerContent(navController: NavController, onDismiss: () 
                 .padding(20.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier.size(44.dp).background(White.copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Default.School, contentDescription = null, tint = White, modifier = Modifier.size(26.dp))
-                }
+                Image(
+                    painter = painterResource(id = R.drawable.logo),
+                    contentDescription = "KMA Logo",
+                    modifier = Modifier.size(56.dp)
+                )
                 Spacer(Modifier.width(12.dp))
                 Column {
                     Text("KMA Legend", fontWeight = FontWeight.Bold, color = White, fontSize = 16.sp)
